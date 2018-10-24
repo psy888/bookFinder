@@ -34,9 +34,9 @@ public class Book {
         }
 
         mRating = Double.parseDouble(rating);
-        mSmallThumbnail = Uri.parse(smallThumbnail); //Todo: add try catch block
-        mThumbnail = Uri.parse(thumbnail);//Todo: add try catch block
-        mInfoLink = Uri.parse(infoLink);//Todo: add try catch block
+        mSmallThumbnail = Uri.parse(smallThumbnail);
+        mThumbnail = Uri.parse(thumbnail);
+        mInfoLink = Uri.parse(infoLink);
     }
 
     //ToDo: add getters

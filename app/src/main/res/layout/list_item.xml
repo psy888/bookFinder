@@ -1,7 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
     android:layout_height="match_parent">
+<ImageView
+    android:id="@+id/bookFaceThumbnail"
+    android:layout_alignParentLeft="true"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:src="@drawable/baseline_search_white_48"
 
-</LinearLayout>
+    />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_toRightOf="@id/bookFaceThumbnail">
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="Title"/>
+        <TextView
+            android:id="@+id/authors"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/title"
+            tools:text="by Authors"/>
+
+        <RatingBar
+            android:id="@+id/rating"
+            style="?android:attr/ratingBarStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/authors"
+            android:layout_alignParentLeft="true"
+            android:isIndicator="true"
+            android:numStars="1"
+            android:stepSize="0.1"
+            android:rating="0.1"
+            />
+        <TextView
+            android:id="@+id/price"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/authors"
+            android:layout_alignParentRight="true"
+            tools:text="195 UAH"/>
+    </RelativeLayout>
+</RelativeLayout>

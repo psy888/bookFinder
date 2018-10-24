@@ -10,13 +10,13 @@ public class BookAdapter extends ArrayAdapter<Book> {
         super(context, resource);
     }
 
-    //ToDo: Write adapter
+
 
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-
+        //ToDo: Write adapter
         return super.getView(position, convertView, parent);
     }
 }

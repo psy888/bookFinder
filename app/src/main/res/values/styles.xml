@@ -8,4 +8,9 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <!-- Rating bar Style -->
+    <style name="RatingBar" >
+        <item name="android:maxHeight">12dp</item>
+        <item name="android:maxWidth">12dp</item>
+    </style>
 </resources>
