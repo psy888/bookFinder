@@ -1,14 +1,11 @@
 package psy888.gbookfinder;
 
-import android.net.ParseException;
-import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,24 +15,24 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class QueryUtils {
     static final String LOG_TAG = QueryUtils.class.getSimpleName();
 
     /**
      *
-     * @param queryStr - from EditText @+id/searchQuery
-     * @return Query Url
+     * @param urlString - String url
+     * @return - url or null if error
      */
-    public URL getUrl (String queryStr)
+    static public URL getUrl(String urlString)
     {
-        //ToDo: Modify query parameters
-        final String queryGoogleBooks = "https://www.googleapis.com/books/v1/volumes?q=";
         URL url = null;
         try
         {
-            url = new URL(queryGoogleBooks + queryStr);
+            url = new URL(urlString);
         }
         catch (MalformedURLException e)
         {
@@ -45,49 +42,42 @@ public class QueryUtils {
         return url;
     }
 
-    public static String makeHttpRequest (URL url) throws IOException
-    {
+    /**
+     * @param url - Server API query url
+     * @return String JsonResponse
+     * @throws IOException - connection exception
+     */
+    public static String makeHttpRequest (URL url) throws IOException {
         String jsonResponse = "";
 
         //If url is null return empty jsonResponse
-        if(url == null)
-        {
+        if(url == null) {
             return jsonResponse;
         }
 
         HttpURLConnection urlConnection = null;
         InputStream inputStream = null;
-        try
-        {
+        try {
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setReadTimeout(1000);//Milliseconds
             urlConnection.setConnectTimeout(1500);//milliseconds
             urlConnection.setRequestMethod("GET");
             urlConnection.connect();
             //if connection is success (CODE = 200) get input stream and parse json
-            if(urlConnection.getResponseCode() == 200)
-            {
+            if(urlConnection.getResponseCode() == 200) {
                 inputStream = urlConnection.getInputStream();
                 jsonResponse = readFromStream(inputStream);
-            }
-            else
-            {
+            } else {
                 Log.e(LOG_TAG, "Connection error, response code: " + urlConnection.getResponseCode());
             }
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             Log.e(LOG_TAG , "Connection error ", e );
-        }
-        finally
-        {
+        } finally {
             //if urlConnection not closed automatically
-            if(urlConnection != null)
-            {
+            if(urlConnection != null) {
                 urlConnection.disconnect();
             }
-            if(inputStream != null)
-            {
+            if(inputStream != null) {
                 inputStream.close();
             }
         }
@@ -96,7 +86,7 @@ public class QueryUtils {
 
     /**
      *
-     * @param inputStream - from makeHttpRequst()
+     * @param inputStream - from makeHttpRequest()
      * @return - String jsonResponse for makeHttpRequest()
      * @throws IOException
      */
@@ -117,6 +107,11 @@ public class QueryUtils {
         return output.toString();
     }
 
+    /**
+     *
+     * @param jsonOutput - received from server
+     * @return - ArrayList of BOOKS
+     */
     public static ArrayList<Book> extractBooksFromJson (String jsonOutput)
     {
         //Check jsonOutput is not Empty
@@ -142,7 +137,21 @@ public class QueryUtils {
             for (int i = 0; i < items.length(); i++)
             {
                 JSONObject currentBook = items.getJSONObject(i);
-
+                /**
+                 * required fields
+                 * title String - V
+                 * authors String[] - ??V need to test
+                 * description - V
+                 * categories String[]
+                 * Publisher String - V
+                 * publishedDate Date -V
+                 * rating double -V
+                 * smallThumbnail uri -V
+                 * thumbnail uri -V
+                 * infoLink uri -V
+                 * price double - V
+                 * currencyCode string - V
+                 */
                 // Extract the value for the key called "title"
                 String title = currentBook.getString("title");
 
@@ -152,10 +161,49 @@ public class QueryUtils {
                 for (int j = 0; j < authorsArray.length(); j++) {
                         authors[j]=authorsArray.getString(j);//Todo: Check this!
                 }
-                // Add all Fields
+                // extract categories to array of strings
+                JSONArray categoriesArray = currentBook.optJSONArray("categories");
+                String[] categories = new String[categoriesArray.length()];
+                for (int j = 0; j < categoriesArray.length(); j++) {
+                    categories[j] = categoriesArray.getString(j);
+                }
+                //Description
+                String description = currentBook.optString("description");
+
+                //Extract Publisher
+                String publisher = currentBook.optString("publisher");
+
+                // Parse date from string if ok extracting
+                SimpleDateFormat sdfFullDate = new SimpleDateFormat("yyyy-MM-dd");
+                SimpleDateFormat sdfYearOnly = new SimpleDateFormat("yyyy");
+                Date publishedDate = null;
+                try {
+                    SimpleDateFormat simpleDateFormat = (currentBook.optString("publishedDate").length() > 4) ? sdfFullDate : sdfYearOnly;
+                    publishedDate = simpleDateFormat.parse(currentBook.optString("publishedDate"));
+                } catch (java.text.ParseException e) {
+                    Log.d(LOG_TAG, "extractBooksFromJson:  ", e);
+                }
+
+                //Extracting Rating
+                float rating = Float.parseFloat(currentBook.optString("averageRating", "0.0"));
+
+                //smallThumbnail
+                URL smallThumnail = getUrl(currentBook.optString("smallThumbnail"));
+                //Thumbnail
+                URL thumbnail = getUrl(currentBook.optString("thumbnail"));
+                //infoLink url
+                URL infoLink = getUrl(currentBook.optString("infoLink"));
 
 
+                double price = 0.0; // if NOT_FOR_SALE
+                String currencyCode = "";
+                if (currentBook.optJSONObject("saleInfo").optString("saleability").contentEquals("FOR_SALE")) {
+                    price = Double.parseDouble(currentBook.optJSONObject("retailPrice").optString("amount"));
+                    currencyCode = currentBook.optJSONObject("retailPrice").optString("currencyCode");
+                }
 
+                Book curBookObj = new Book(title, authors, description, categories, publisher, publishedDate, rating, smallThumnail, thumbnail, infoLink, price, currencyCode);
+                booksList.add(curBookObj);
             }
         }
         catch (JSONException e)
@@ -168,8 +216,26 @@ public class QueryUtils {
         return booksList;
     }
 
+    /**
+     *
+     * @param queryStr - from EditText @+id/searchQuery
+     * @return Query Url
+     */
+    public URL getQueryUrl(String queryStr) {
+        //ToDo: Modify query parameters
+        final String queryGoogleBooks = "https://www.googleapis.com/books/v1/volumes?q=";
+        URL url = null;
+        try {
+            url = new URL(queryGoogleBooks + queryStr);
+        } catch (MalformedURLException e) {
+            Log.e(LOG_TAG, "Problem building url ", e);
+            e.printStackTrace();
+        }
+        return url;
+    }
+
     //Todo: 1.parse urls method -- done!
     //TODO: 2.makeHttpConnection method -- done!
     //Todo 2.1 ReadFromStream method -- done!
-    //Todo: 3.Parse json add data to Book object and fill ArrayList
+    //Todo: 3.Parse json add data to Book object and fill ArrayList -- done!
 }
