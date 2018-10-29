@@ -58,7 +58,7 @@ public class BookAdapter extends ArrayAdapter<Book> {
 
         //Set data from currentBook Object to layout views
         title.setText(currentBook.getTitle());
-        authors.setText(arrayToString(currentBook.getAuthors()));
+        authors.setText(currentBook.getAuthors()[0]);
         ratingBar.setRating(currentBook.getRating());
         price.setText(currentBook.getPrice() + " " + currentBook.getCurrencyCode()); // Todo: change currency code to Localized currency representation
         // bookSmallThumbnail.setImageURI(currentBook.getSmallThumbnail().toURI()); // Todo: write asyncTask to get image

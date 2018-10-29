@@ -18,6 +18,7 @@ import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class QueryUtils {
     static final String LOG_TAG = QueryUtils.class.getSimpleName();
@@ -37,6 +38,23 @@ public class QueryUtils {
         catch (MalformedURLException e)
         {
             Log.e(LOG_TAG, "Problem building url ",e);
+            e.printStackTrace();
+        }
+        return url;
+    }
+
+    /**
+     * @param queryStr - from EditText @+id/searchQuery
+     * @return Query Url
+     */
+    public static URL getQueryUrl(String queryStr) {
+        //ToDo: Modify query parameters
+        final String queryGoogleBooks = "https://www.googleapis.com/books/v1/volumes?q=";
+        URL url = null;
+        try {
+            url = new URL(queryGoogleBooks + queryStr + "&maxResults=40");
+        } catch (MalformedURLException e) {
+            Log.e(LOG_TAG, "Problem building url ", e);
             e.printStackTrace();
         }
         return url;
@@ -104,6 +122,7 @@ public class QueryUtils {
                 line=bufferedReader.readLine();
             }
         }
+        Log.e(LOG_TAG, "OUTPUT" + output.toString());
         return output.toString();
     }
 
@@ -136,7 +155,7 @@ public class QueryUtils {
             //for each item (Book) create Book object
             for (int i = 0; i < items.length(); i++)
             {
-                JSONObject currentBook = items.getJSONObject(i);
+                JSONObject currentBook = items.optJSONObject(i);
                 /**
                  * required fields
                  * title String - V
@@ -152,34 +171,35 @@ public class QueryUtils {
                  * price double - V
                  * currencyCode string - V
                  */
+                JSONObject volumeInfo = currentBook.getJSONObject("volumeInfo");
                 // Extract the value for the key called "title"
-                String title = currentBook.getString("title");
+                String title = volumeInfo.getString("title");
 
                 //extract authors to array of strings
-                JSONArray authorsArray = currentBook.optJSONArray("authors");
+                JSONArray authorsArray = volumeInfo.optJSONArray("authors");
                 String[] authors = new String[authorsArray.length()];
                 for (int j = 0; j < authorsArray.length(); j++) {
                         authors[j]=authorsArray.getString(j);//Todo: Check this!
                 }
                 // extract categories to array of strings
-                JSONArray categoriesArray = currentBook.optJSONArray("categories");
+                JSONArray categoriesArray = volumeInfo.optJSONArray("categories");
                 String[] categories = new String[categoriesArray.length()];
                 for (int j = 0; j < categoriesArray.length(); j++) {
                     categories[j] = categoriesArray.getString(j);
                 }
                 //Description
-                String description = currentBook.optString("description");
+                String description = volumeInfo.optString("description");
 
                 //Extract Publisher
-                String publisher = currentBook.optString("publisher");
+                String publisher = volumeInfo.optString("publisher");
 
                 // Parse date from string if ok extracting
                 SimpleDateFormat sdfFullDate = new SimpleDateFormat("yyyy-MM-dd");
                 SimpleDateFormat sdfYearOnly = new SimpleDateFormat("yyyy");
                 Date publishedDate = null;
                 try {
-                    SimpleDateFormat simpleDateFormat = (currentBook.optString("publishedDate").length() > 4) ? sdfFullDate : sdfYearOnly;
-                    publishedDate = simpleDateFormat.parse(currentBook.optString("publishedDate"));
+                    SimpleDateFormat simpleDateFormat = (volumeInfo.optString("publishedDate").length() > 4) ? sdfFullDate : sdfYearOnly;
+                    publishedDate = simpleDateFormat.parse(volumeInfo.optString("publishedDate"));
                 } catch (java.text.ParseException e) {
                     Log.d(LOG_TAG, "extractBooksFromJson:  ", e);
                 }
@@ -188,18 +208,19 @@ public class QueryUtils {
                 float rating = Float.parseFloat(currentBook.optString("averageRating", "0.0"));
 
                 //smallThumbnail
-                URL smallThumnail = getUrl(currentBook.optString("smallThumbnail"));
+                URL smallThumnail = getUrl(volumeInfo.optJSONObject("imageLinks").optString("smallThumbnail"));
                 //Thumbnail
-                URL thumbnail = getUrl(currentBook.optString("thumbnail"));
+                URL thumbnail = getUrl(volumeInfo.optJSONObject("imageLinks").optString("thumbnail"));
                 //infoLink url
-                URL infoLink = getUrl(currentBook.optString("infoLink"));
+                URL infoLink = getUrl(volumeInfo.optJSONObject("imageLinks").optString("infoLink"));
 
 
                 double price = 0.0; // if NOT_FOR_SALE
                 String currencyCode = "";
-                if (currentBook.optJSONObject("saleInfo").optString("saleability").contentEquals("FOR_SALE")) {
-                    price = Double.parseDouble(currentBook.optJSONObject("retailPrice").optString("amount"));
-                    currencyCode = currentBook.optJSONObject("retailPrice").optString("currencyCode");
+                JSONObject saleInfo = currentBook.optJSONObject("saleInfo");
+                if (saleInfo.optString("saleability").contentEquals("FOR_SALE")) {
+                    price = Double.parseDouble(saleInfo.optJSONObject("retailPrice").optString("amount"));
+                    currencyCode = saleInfo.optJSONObject("retailPrice").optString("currencyCode");
                 }
 
                 Book curBookObj = new Book(title, authors, description, categories, publisher, publishedDate, rating, smallThumnail, thumbnail, infoLink, price, currencyCode);
@@ -216,24 +237,29 @@ public class QueryUtils {
         return booksList;
     }
 
-    /**
-     *
-     * @param queryStr - from EditText @+id/searchQuery
-     * @return Query Url
-     */
-    public URL getQueryUrl(String queryStr) {
-        //ToDo: Modify query parameters
-        final String queryGoogleBooks = "https://www.googleapis.com/books/v1/volumes?q=";
-        URL url = null;
-        try {
-            url = new URL(queryGoogleBooks + queryStr);
-        } catch (MalformedURLException e) {
-            Log.e(LOG_TAG, "Problem building url ", e);
-            e.printStackTrace();
-        }
-        return url;
-    }
 
+    /**
+     *  Fetch data from server
+     * @param query
+     * @return List of book objects
+     */
+    public static List<Book> fetchBooksData(String query) {
+        //Create query url
+        URL queryUrl = getQueryUrl(query);
+
+        //Perform HTTP request and receive JSON response
+        String jsonResponse = null;
+        try {
+            jsonResponse = makeHttpRequest(queryUrl);
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "Problem making the HTTP request.", e);
+        }
+        //Extract relevant fields from the JSON response and create a list of books
+        List<Book> bookList = extractBooksFromJson(jsonResponse);
+
+        return bookList;
+
+    }
     //Todo: 1.parse urls method -- done!
     //TODO: 2.makeHttpConnection method -- done!
     //Todo 2.1 ReadFromStream method -- done!
