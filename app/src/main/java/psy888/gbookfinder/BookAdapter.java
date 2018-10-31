@@ -58,11 +58,15 @@ public class BookAdapter extends ArrayAdapter<Book> {
 
         //Set data from currentBook Object to layout views
         title.setText(currentBook.getTitle());
-        authors.setText(currentBook.getAuthors()[0]);
+        authors.setText(currentBook.getAuthors());
         ratingBar.setRating(currentBook.getRating());
         price.setText(currentBook.getPrice() + " " + currentBook.getCurrencyCode()); // Todo: change currency code to Localized currency representation
-        // bookSmallThumbnail.setImageURI(currentBook.getSmallThumbnail().toURI()); // Todo: write asyncTask to get image
-
+        if (currentBook.getSmallThumbnail() != null) {
+            bookSmallThumbnail.setImageBitmap(currentBook.getSmallThumbnail()); // Todo: write asyncTask to get image
+        } else {
+            bookSmallThumbnail.setImageResource(R.drawable.outline_broken_image_black_48); //if book has no cover
+        }
+        //new QueryUtils.DownloadImageTask(bookSmallThumbnail).execute(currentBook.getSmallThumbnail());
         //ToDo: Write adapter -- done
         return listItem;
     }

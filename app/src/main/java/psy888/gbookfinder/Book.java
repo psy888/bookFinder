@@ -1,7 +1,8 @@
 package psy888.gbookfinder;
 
+import android.graphics.Bitmap;
+
 import java.net.URL;
-import java.util.Date;
 
 public class Book {
     /**
@@ -20,17 +21,18 @@ public class Book {
      * currencyCode string - V
      */
     String LOG_TAG = getClass().getSimpleName();
+    private String mId;
     private String mTitle; //"title" Book Title
-    private String[] mAuthors; //"authors" []
+    private String mAuthors; //"authors"
     private String mDescription;
-    private String[] mCategories; //"categories" []
+    private String mCategories; //"categories"
     private String mPublisher; //"publisher": "Издательский дом \"Питер\"",
-    private Date mPublishedDate;//"publishedDate": "2012-05-11" or "publishedDate": "2012"
+    private String mPublishedDate;//"publishedDate": "2012-05-11" or "publishedDate": "2012"
     private float mRating; // 5 stars "averageRating"
-    private URL mSmallThumbnail; //"imageLinks" -> "smallThumbnail"
+    private Bitmap mSmallThumbnail; //"imageLinks" -> "smallThumbnail"
     private URL mThumbnail; //"imageLinks" -> "small"
     private URL mInfoLink; //infoLink - https://books.google.com.ua/books?id=...
-    private double mPrice;
+    private String mPrice;
     private String mCurrencyCode;
 
     /**
@@ -49,7 +51,8 @@ public class Book {
      * @param price          - retail price (double)
      * @param currencyCode   - currency of price (String)
      */
-    public Book(String title, String[] authors, String description, String[] categories, String publisher, Date publishedDate, float rating, URL smallThumbnail, URL thumbnail, URL infoLink, double price, String currencyCode) {
+    public Book(String id, String title, String authors, String description, String categories, String publisher, String publishedDate, float rating, String price, String currencyCode, Bitmap smallThumbnail) {
+        mId = id;
         mTitle = title;
         mAuthors = authors;
         mDescription = description;
@@ -58,22 +61,27 @@ public class Book {
         mPublishedDate = publishedDate;
         mRating = rating;
         mSmallThumbnail = smallThumbnail;
-        mThumbnail = thumbnail;
-        mInfoLink = infoLink;
+        //   mThumbnail = thumbnail;
+        //   mInfoLink = infoLink;
         mPrice = price;
         mCurrencyCode = currencyCode;
     }
 
     //ToDo: add getters
+
+    public String getId() {
+        return mId;
+    }
+
     public String getTitle() {
         return mTitle;
     }
 
-    public String[] getAuthors() {
+    public String getAuthors() {
         return mAuthors;
     }
 
-    public String[] getCategories() {
+    public String getCategories() {
         return mCategories;
     }
 
@@ -85,15 +93,15 @@ public class Book {
         return mPublisher;
     }
 
-    public Date getPublishedDate() {
+    public String getPublishedDate() {
         return mPublishedDate;
     }
 
     public float getRating() {
-        return mRating;
+        return mRating / 5 * 3;
     }
 
-    public URL getSmallThumbnail() {
+    public Bitmap getSmallThumbnail() {
         return mSmallThumbnail;
     }
 
@@ -105,7 +113,7 @@ public class Book {
         return mInfoLink;
     }
 
-    public double getPrice() {
+    public String getPrice() {
         return mPrice;
     }
 
