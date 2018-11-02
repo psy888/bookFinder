@@ -53,6 +53,7 @@ public class BookAdapter extends ArrayAdapter<Book> {
         TextView title = listItem.findViewById(R.id.title);
         TextView authors = listItem.findViewById(R.id.authors);
         RatingBar ratingBar = listItem.findViewById(R.id.rating);
+        TextView ratingNum = listItem.findViewById(R.id.ratingNum);
         TextView price = listItem.findViewById(R.id.price);
         ImageView bookSmallThumbnail = listItem.findViewById(R.id.bookSmallThumbnail);
 
@@ -60,6 +61,7 @@ public class BookAdapter extends ArrayAdapter<Book> {
         title.setText(currentBook.getTitle());
         authors.setText(currentBook.getAuthors());
         ratingBar.setRating(currentBook.getRating());
+        ratingNum.setText(currentBook.getRatingNum() + "/5");
         price.setText(currentBook.getPrice() + " " + currentBook.getCurrencyCode()); // Todo: change currency code to Localized currency representation
         if (currentBook.getSmallThumbnail() != null) {
             bookSmallThumbnail.setImageBitmap(currentBook.getSmallThumbnail()); // Todo: write asyncTask to get image

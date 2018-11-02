@@ -4,13 +4,15 @@
     <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimaryDark">#414456</item>
+        <item name="colorAccent">@color/colorPrimary</item>
     </style>
 
     <!-- Rating bar Style -->
-    <style name="RatingBar" >
-        <item name="android:maxHeight">12dp</item>
-        <item name="android:maxWidth">12dp</item>
+    <style name="RatingBar" parent="Widget.AppCompat.RatingBar.Indicator">
+        <item name="android:maxHeight">16dp</item>
+        <item name="android:maxWidth">16dp</item>
+        <item name="colorAccent">#ffda66</item>
+        <item name="colorControlNormal">#dcdeea</item>
     </style>
 </resources>

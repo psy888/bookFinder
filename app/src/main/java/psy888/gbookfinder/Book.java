@@ -2,8 +2,6 @@ package psy888.gbookfinder;
 
 import android.graphics.Bitmap;
 
-import java.net.URL;
-
 public class Book {
     /**
      * required fields
@@ -30,8 +28,8 @@ public class Book {
     private String mPublishedDate;//"publishedDate": "2012-05-11" or "publishedDate": "2012"
     private float mRating; // 5 stars "averageRating"
     private Bitmap mSmallThumbnail; //"imageLinks" -> "smallThumbnail"
-    private URL mThumbnail; //"imageLinks" -> "small"
-    private URL mInfoLink; //infoLink - https://books.google.com.ua/books?id=...
+    private String mThumbnail; //"imageLinks" -> "small"
+    private String mInfoLink; //infoLink - https://books.google.com.ua/books?id=...
     private String mPrice;
     private String mCurrencyCode;
 
@@ -46,12 +44,12 @@ public class Book {
      * @param publishedDate  - Book published date (Date)
      * @param rating         - book rating (double) value or 0.0 if not rated
      * @param smallThumbnail - small thumbnail (URL)
-     * @param thumbnail      - thumbnail (URL)
-     * @param infoLink       - link to book information on play.google.com (URL)
+     * @param thumbnail      - thumbnail (String)
+     * @param infoLink       - link to book information on play.google.com (String)
      * @param price          - retail price (double)
      * @param currencyCode   - currency of price (String)
      */
-    public Book(String id, String title, String authors, String description, String categories, String publisher, String publishedDate, float rating, String price, String currencyCode, Bitmap smallThumbnail) {
+    public Book(String id, String title, String authors, String description, String categories, String publisher, String publishedDate, float rating, String price, String currencyCode, Bitmap smallThumbnail, String thumbnail, String infoLink) {
         mId = id;
         mTitle = title;
         mAuthors = authors;
@@ -60,11 +58,11 @@ public class Book {
         mPublisher = publisher;
         mPublishedDate = publishedDate;
         mRating = rating;
-        mSmallThumbnail = smallThumbnail;
-        //   mThumbnail = thumbnail;
-        //   mInfoLink = infoLink;
         mPrice = price;
         mCurrencyCode = currencyCode;
+        mSmallThumbnail = smallThumbnail;
+        mThumbnail = thumbnail;
+        mInfoLink = infoLink;
     }
 
     //ToDo: add getters
@@ -98,18 +96,22 @@ public class Book {
     }
 
     public float getRating() {
-        return mRating / 5 * 3;
+        return mRating / 5;
+    }
+
+    public int getRatingNum() {
+        return (int) Math.floor(mRating);
     }
 
     public Bitmap getSmallThumbnail() {
         return mSmallThumbnail;
     }
 
-    public URL getThumbnail() {
+    public String getThumbnail() {
         return mThumbnail;
     }
 
-    public URL getInfoLink() {
+    public String getInfoLink() {
         return mInfoLink;
     }
 

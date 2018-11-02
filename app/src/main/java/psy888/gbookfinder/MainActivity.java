@@ -14,17 +14,19 @@ import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.List;
 
-//import android.support.v4.app.LoaderManager;
-//import android.support.v4.content.Loader;
 
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Book>> {
 
     private static final int BOOKS_LOADER_ID = 1;
     protected BookAdapter mAdapter;
+    public static Book dBook;
     String query = "Java";
     //Context context = MainActivity.;
 
+    public static Book getdBook() {
+        return dBook;
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             public void onClick(View view) {
 
-                query = editText.getText().toString().trim();
+                query = editText.getText().toString().trim() + "&maxResults=40";
                 // Log.d("Query", query);
                 if (getLoaderManager().getLoader(BOOKS_LOADER_ID) != null) {
                     getLoaderManager().restartLoader(BOOKS_LOADER_ID, null, MainActivity.this);
@@ -61,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
 
+                dBook = mAdapter.getItem(position);
                 Intent details = new Intent(MainActivity.this, DetailsActivity.class);
                 String bookId = mAdapter.getItem(position).getId();
                 details.putExtra("id", bookId);
@@ -73,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         //ToDo: add adapter - Done
         //ToDo: Extend Async task loader and add loader - Done
+
 
 
     }
@@ -88,6 +92,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         mAdapter.clear();
         if (books != null && !books.isEmpty()) {
             mAdapter.addAll(books);
+        } else {
+            //TODO Set text to emptyView "no results"
         }
     }
 

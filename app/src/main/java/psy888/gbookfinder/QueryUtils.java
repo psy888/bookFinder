@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.ImageView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -53,7 +54,7 @@ public class QueryUtils {
         final String queryGoogleBooks = "https://www.googleapis.com/books/v1/volumes?q=";
         URL url = null;
         try {
-            url = new URL(queryGoogleBooks + queryStr + "&maxResults=40");
+            url = new URL(queryGoogleBooks + queryStr);
         } catch (MalformedURLException e) {
             Log.e(LOG_TAG, "Problem building url ", e);
             e.printStackTrace();
@@ -152,80 +153,86 @@ public class QueryUtils {
             JSONObject jsonResponse = new JSONObject(jsonOutput);
 
             JSONArray items = jsonResponse.optJSONArray("items");
+            if (items != null) {
+                Log.e(LOG_TAG, "Items length " + items.length());
+                //for each item (Book) create Book object
+                for (int i = 0; i < items.length(); i++) {
+                    JSONObject currentBook = items.optJSONObject(i);
+                    //Get Book id for details intent
+                    String bookId = currentBook.optString("id");
 
-            //for each item (Book) create Book object
-            for (int i = 0; i < items.length(); i++) {
-                JSONObject currentBook = items.optJSONObject(i);
-                //Get Book id for details intent
-                String bookId = currentBook.optString("id");
-
-                JSONObject volumeInfo = currentBook.getJSONObject("volumeInfo");
-                // Extract the value for the key called "title"
-                String title = volumeInfo.getString("title");
+                    JSONObject volumeInfo = currentBook.getJSONObject("volumeInfo");
+                    // Extract the value for the key called "title"
+                    String title = volumeInfo.getString("title");
 
 
-                //extract authors to array of strings
-                JSONArray authorsArray = volumeInfo.optJSONArray("authors");
-                String authors = "";
-                if (authorsArray != null) {
-                    for (int j = 0; j < authorsArray.length(); j++) {
-                        authors = (j != (authorsArray.length() - 1)) ? authorsArray.optString(j) + ", " : authorsArray.optString(j);//Todo: Check this!
+                    //extract authors to array of strings
+                    JSONArray authorsArray = volumeInfo.optJSONArray("authors");
+                    String authors = "";
+                    if (authorsArray != null) {
+                        for (int j = 0; j < authorsArray.length(); j++) {
+                            authors = (j != (authorsArray.length() - 1)) ? authorsArray.optString(j) + ", " : authorsArray.optString(j);//Todo: Check this!
+                        }
                     }
-                }
 
 
-                // extract categories to array of strings
-                JSONArray categoriesArray = volumeInfo.optJSONArray("categories");
-                String categories = "";
-                if (categoriesArray != null) {
-                    for (int j = 0; j < categoriesArray.length(); j++) {
-                        categories = (j != (categoriesArray.length() - 1)) ? categoriesArray.optString(j) + ", " : categoriesArray.optString(j);
+                    // extract categories to array of strings
+                    JSONArray categoriesArray = volumeInfo.optJSONArray("categories");
+                    String categories = "";
+                    if (categoriesArray != null) {
+                        for (int j = 0; j < categoriesArray.length(); j++) {
+                            categories = (j != (categoriesArray.length() - 1)) ? categoriesArray.optString(j) + ", " : categoriesArray.optString(j);
+                        }
                     }
+
+
+                    //Description
+                    String description = volumeInfo.optString("description");
+                    //Extract Publisher
+                    String publisher = volumeInfo.optString("publisher");
+
+                    // Parse date from string if ok extracting
+                    String publishedDate = volumeInfo.optString("publishedDate").split("-")[0];
+
+                    //Extracting Rating
+                    float rating = Float.parseFloat(volumeInfo.optString("averageRating", "0.0"));
+
+
+                    //smallThumbnail
+                    Bitmap smallThumbnail = null; // ToDo: AddDefault Bitmap
+                    try {
+                        smallThumbnail = DownloadImageTask(volumeInfo.optJSONObject("imageLinks").optString("smallThumbnail"));
+                    } catch (Exception e) {
+                        Log.e(LOG_TAG, "Error", e);
+                        e.printStackTrace();
+                    }
+                    //String smallThumbnail = volumeInfo.optJSONObject("imageLinks").optString("smallThumbnail");
+                    //Thumbnail
+
+                    String thumbnail = volumeInfo.optJSONObject("imageLinks").optString("thumbnail");
+                    //infoLink url
+                    String infoLink = volumeInfo.optJSONObject("imageLinks").optString("infoLink");
+
+
+                    String price = ""; // if NOT_FOR_SALE
+                    String currencyCode = "";
+                    JSONObject saleInfo = currentBook.optJSONObject("saleInfo");
+                    if (saleInfo.optString("saleability").contentEquals("FOR_SALE")) {
+                        price = saleInfo.optJSONObject("retailPrice").optString("amount");
+                        //  Log.e(LOG_TAG, " price " + price );
+                        currencyCode = saleInfo.optJSONObject("retailPrice").optString("currencyCode");
+                        // Log.e(LOG_TAG, " currencyCode " + currencyCode );
+                    }
+
+                    //Book curBookObj = new Book(title, authors, description, categories, publisher, publishedDate, rating, smallThumbnail, thumbnail, infoLink, price, currencyCode);
+                    Book curBookObj = new Book(bookId, title, authors, description, categories, publisher, publishedDate, rating, price, currencyCode, smallThumbnail, thumbnail, infoLink);
+
+                    booksList.add(curBookObj);
                 }
 
-
-                //Description
-                String description = volumeInfo.optString("description");
-                //Extract Publisher
-                String publisher = volumeInfo.optString("publisher");
-
-                // Parse date from string if ok extracting
-                String publishedDate = volumeInfo.optString("publishedDate").split("-")[0];
-
-                //Extracting Rating
-                float rating = Float.parseFloat(volumeInfo.optString("averageRating", "0.0"));
-
-
-                //smallThumbnail
-                Bitmap smallThumbnail = null; // ToDo: AddDefault Bitmap
-                try {
-                    smallThumbnail = DownloadImageTask(volumeInfo.optJSONObject("imageLinks").optString("smallThumbnail"));
-                } catch (Exception e) {
-                    Log.e(LOG_TAG, "Error", e);
-                    e.printStackTrace();
-                }
-                //String smallThumbnail = volumeInfo.optJSONObject("imageLinks").optString("smallThumbnail");
-                //Thumbnail
-                /*
-                URL thumbnail = getUrl(volumeInfo.optJSONObject("imageLinks").optString("thumbnail"));
-                //infoLink url
-                URL infoLink = getUrl(volumeInfo.optJSONObject("imageLinks").optString("infoLink"));
-*/
-
-                String price = ""; // if NOT_FOR_SALE
-                String currencyCode = "";
-                JSONObject saleInfo = currentBook.optJSONObject("saleInfo");
-                if (saleInfo.optString("saleability").contentEquals("FOR_SALE")) {
-                    price = saleInfo.optJSONObject("retailPrice").optString("amount");
-                    //  Log.e(LOG_TAG, " price " + price );
-                    currencyCode = saleInfo.optJSONObject("retailPrice").optString("currencyCode");
-                    // Log.e(LOG_TAG, " currencyCode " + currencyCode );
-                }
-
-                //Book curBookObj = new Book(title, authors, description, categories, publisher, publishedDate, rating, smallThumbnail, thumbnail, infoLink, price, currencyCode);
-                Book curBookObj = new Book(bookId, title, authors, description, categories, publisher, publishedDate, rating, price, currencyCode, smallThumbnail);
-
-                booksList.add(curBookObj);
+            } else {
+                Log.d(LOG_TAG, "extractBooksFromJson: no results.");
+                return null;
             }
         }
         catch (JSONException e)
@@ -279,11 +286,11 @@ public class QueryUtils {
         }
         return mCover;
     }
-    /*
-    public static class DownloadImageTask extends AsyncTask<String,Void,Bitmap>  {
+
+    public static class DownloadThumbnailTask extends AsyncTask<String, Void, Bitmap> {
         ImageView imageView;
 
-       public DownloadImageTask(ImageView imageView) {
+        public DownloadThumbnailTask(ImageView imageView) {
            this.imageView = imageView;
        }
 
@@ -300,7 +307,7 @@ public class QueryUtils {
                Log.e("Error", e.getMessage());
                e.printStackTrace();
            }
-
+           Log.e(LOG_TAG, "DownloadThumbnailTask start ");
            return mCover;
        }
 
@@ -311,9 +318,11 @@ public class QueryUtils {
 
        @Override
        protected void onPostExecute(Bitmap bitmap) {
+           Log.e(LOG_TAG, "DownloadThumbnailTask Finish ");
            imageView.setImageBitmap(bitmap);
+
        }
-   }*/
+    }
 
     public class getBookDetails extends AsyncTask<String, Void, Book> {
 
