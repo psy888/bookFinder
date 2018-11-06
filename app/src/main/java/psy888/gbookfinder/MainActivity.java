@@ -20,6 +20,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private static final int BOOKS_LOADER_ID = 1;
     protected BookAdapter mAdapter;
+    protected List<Book> books;
     public static Book dBook;
     String query = "Java";
     //Context context = MainActivity.;
@@ -49,8 +50,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                query = editText.getText().toString().trim() + "&maxResults=40";
+                query = editText.getText().toString().trim();
                 // Log.d("Query", query);
                 if (getLoaderManager().getLoader(BOOKS_LOADER_ID) != null) {
                     getLoaderManager().restartLoader(BOOKS_LOADER_ID, null, MainActivity.this);
@@ -59,26 +59,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 getLoaderManager().initLoader(BOOKS_LOADER_ID, null, MainActivity.this);
             }
         });
+        //Go to Details Activity with details of this Book
         booksListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-
                 dBook = mAdapter.getItem(position);
                 Intent details = new Intent(MainActivity.this, DetailsActivity.class);
-                String bookId = mAdapter.getItem(position).getId();
-                details.putExtra("id", bookId);
                 startActivity(details);
-
-
             }
         });
-
-
-        //ToDo: add adapter - Done
-        //ToDo: Extend Async task loader and add loader - Done
-
-
-
     }
 
     @Override
@@ -89,9 +78,10 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoadFinished(Loader<List<Book>> loader, List<Book> books) {
-        mAdapter.clear();
-        if (books != null && !books.isEmpty()) {
-            mAdapter.addAll(books);
+        this.books = books;
+        this.mAdapter.clear();
+        if (this.books != null && !this.books.isEmpty()) {
+            mAdapter.addAll(this.books);
         } else {
             //TODO Set text to emptyView "no results"
         }
@@ -99,6 +89,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoaderReset(Loader<List<Book>> loader) {
-        //mAdapter.clear();
+        mAdapter.clear();
     }
 }

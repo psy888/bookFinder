@@ -17,7 +17,7 @@ public class BooksLoader extends AsyncTaskLoader<List<Book>> {
 
     public BooksLoader(Context context, String query) {
         super(context);
-        this.query = query;
+        this.query = query + "&maxResults=20";
     }
 
     @Override

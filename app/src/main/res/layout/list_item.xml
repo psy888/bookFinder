@@ -13,8 +13,7 @@
     android:layout_centerInParent="true"
     android:layout_marginLeft="4dp"
     android:layout_marginRight="4dp"
-    tools:src="@drawable/outline_broken_image_black_48"
-    />
+    tools:src="@drawable/outline_broken_image_black_48" />
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -30,7 +29,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="#fff"
-            android:textSize="20sp"
+            android:textSize="16sp"
             tools:text="Title"/>
         <TextView
             android:id="@+id/authors"
@@ -42,7 +41,7 @@
 
         <RatingBar
             android:id="@+id/rating"
-            style="@style/RatingBar"
+            style="@style/Widget.AppCompat.RatingBar.Small"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:numStars="1"

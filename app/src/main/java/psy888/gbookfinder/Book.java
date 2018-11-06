@@ -27,11 +27,12 @@ public class Book {
     private String mPublisher; //"publisher": "Издательский дом \"Питер\"",
     private String mPublishedDate;//"publishedDate": "2012-05-11" or "publishedDate": "2012"
     private float mRating; // 5 stars "averageRating"
-    private Bitmap mSmallThumbnail; //"imageLinks" -> "smallThumbnail"
+    private String mSmallThumbnail; //"imageLinks" -> "smallThumbnail"
     private String mThumbnail; //"imageLinks" -> "small"
     private String mInfoLink; //infoLink - https://books.google.com.ua/books?id=...
     private String mPrice;
     private String mCurrencyCode;
+    private Bitmap thumbBitmap;
 
     /**
      * Constructor
@@ -49,7 +50,7 @@ public class Book {
      * @param price          - retail price (double)
      * @param currencyCode   - currency of price (String)
      */
-    public Book(String id, String title, String authors, String description, String categories, String publisher, String publishedDate, float rating, String price, String currencyCode, Bitmap smallThumbnail, String thumbnail, String infoLink) {
+    public Book(String id, String title, String authors, String description, String categories, String publisher, String publishedDate, float rating, String price, String currencyCode, String smallThumbnail, String thumbnail, String infoLink) {
         mId = id;
         mTitle = title;
         mAuthors = authors;
@@ -66,6 +67,14 @@ public class Book {
     }
 
     //ToDo: add getters
+    Bitmap getThumbBitmap() {
+        return thumbBitmap;
+    }
+
+    //Setters
+    void setThumbBitmap(Bitmap bitmap) {
+        this.thumbBitmap = bitmap;
+    }
 
     public String getId() {
         return mId;
@@ -103,7 +112,7 @@ public class Book {
         return (int) Math.floor(mRating);
     }
 
-    public Bitmap getSmallThumbnail() {
+    String getSmallThumbnail() {
         return mSmallThumbnail;
     }
 
@@ -111,7 +120,7 @@ public class Book {
         return mThumbnail;
     }
 
-    public String getInfoLink() {
+    String getInfoLink() {
         return mInfoLink;
     }
 
@@ -119,7 +128,9 @@ public class Book {
         return mPrice;
     }
 
-    public String getCurrencyCode() {
+    String getCurrencyCode() {
         return mCurrencyCode;
     }
+
+
 }

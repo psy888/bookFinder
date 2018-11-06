@@ -1,5 +1,6 @@
 package psy888.gbookfinder;
 
+
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,33 +11,17 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.List;
+
 
 public class BookAdapter extends ArrayAdapter<Book> {
     private Context mContext;
-    private List<Book> mBooksList;
+    private ArrayList<Book> mBooksList;
 
     public BookAdapter(Context context, ArrayList<Book> booksList) {
         super(context, 0, booksList);
         mBooksList = booksList;
         mContext = context;
     }
-
-    //Helper method Array of strings to String
-    private static String arrayToString(String[] arr) {
-        StringBuilder stringBuilder = new StringBuilder();
-        String divider = ", ";
-        for (int i = 0; i < arr.length; i++) {
-            if (i != arr.length - 1) {
-                stringBuilder.append(arr[i] + divider);
-            } else {
-                stringBuilder.append(arr[i]);
-            }
-        }
-        return stringBuilder.toString();
-    }
-
-
 
 
     @Override
@@ -63,13 +48,17 @@ public class BookAdapter extends ArrayAdapter<Book> {
         ratingBar.setRating(currentBook.getRating());
         ratingNum.setText(currentBook.getRatingNum() + "/5");
         price.setText(currentBook.getPrice() + " " + currentBook.getCurrencyCode()); // Todo: change currency code to Localized currency representation
-        if (currentBook.getSmallThumbnail() != null) {
-            bookSmallThumbnail.setImageBitmap(currentBook.getSmallThumbnail()); // Todo: write asyncTask to get image
-        } else {
-            bookSmallThumbnail.setImageResource(R.drawable.outline_broken_image_black_48); //if book has no cover
+        bookSmallThumbnail.setTag(currentBook);
+        bookSmallThumbnail.animate();
+        //if Image already downloaded set it to ImageView
+        if (currentBook.equals(bookSmallThumbnail.getTag()) && currentBook.getThumbBitmap() != null) {
+            bookSmallThumbnail.setImageBitmap(currentBook.getThumbBitmap());
+        } else { // Else null ImageView source and create a new AsyncTask to download image
+            bookSmallThumbnail.setImageDrawable(null);
+            //bookSmallThumbnail.setImageResource(R.drawable.outline_broken_image_black_48); //if book has no cover
+            new QueryUtils.DownloadThumbnailTask(mBooksList, bookSmallThumbnail, position).execute(currentBook.getSmallThumbnail());
         }
-        //new QueryUtils.DownloadImageTask(bookSmallThumbnail).execute(currentBook.getSmallThumbnail());
-        //ToDo: Write adapter -- done
+
         return listItem;
     }
 }

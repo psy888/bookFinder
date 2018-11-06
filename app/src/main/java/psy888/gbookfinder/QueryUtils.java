@@ -25,25 +25,6 @@ import java.util.List;
 public class QueryUtils {
     static final String LOG_TAG = QueryUtils.class.getSimpleName();
 
-    /**
-     *
-     * @param urlString - String url
-     * @return - url or null if error
-     */
-    static public URL getUrl(String urlString)
-    {
-        URL url = null;
-        try
-        {
-            url = new URL(urlString);
-        }
-        catch (MalformedURLException e)
-        {
-            Log.e(LOG_TAG, "Problem building url ",e);
-            e.printStackTrace();
-        }
-        return url;
-    }
 
     /**
      * @param queryStr - from EditText @+id/searchQuery
@@ -124,7 +105,6 @@ public class QueryUtils {
                 line=bufferedReader.readLine();
             }
         }
-        //Log.e(LOG_TAG, "OUTPUT" + output.toString());
         return output.toString();
     }
 
@@ -199,19 +179,16 @@ public class QueryUtils {
 
 
                     //smallThumbnail
-                    Bitmap smallThumbnail = null; // ToDo: AddDefault Bitmap
-                    try {
-                        smallThumbnail = DownloadImageTask(volumeInfo.optJSONObject("imageLinks").optString("smallThumbnail"));
-                    } catch (Exception e) {
-                        Log.e(LOG_TAG, "Error", e);
-                        e.printStackTrace();
-                    }
-                    //String smallThumbnail = volumeInfo.optJSONObject("imageLinks").optString("smallThumbnail");
+                    String smallThumbnail = volumeInfo.optJSONObject("imageLinks").optString("smallThumbnail");
+
+                    //   smallThumbnail = DownloadImageTask(volumeInfo.optJSONObject("imageLinks").optString("smallThumbnail"));
+                    //    smallThumbnail = DownloadImageTask(volumeInfo.optJSONObject("imageLinks").optString("thumbnail"));
+
                     //Thumbnail
 
                     String thumbnail = volumeInfo.optJSONObject("imageLinks").optString("thumbnail");
                     //infoLink url
-                    String infoLink = volumeInfo.optJSONObject("imageLinks").optString("infoLink");
+                    String infoLink = volumeInfo.optString("infoLink");
 
 
                     String price = ""; // if NOT_FOR_SALE
@@ -219,17 +196,13 @@ public class QueryUtils {
                     JSONObject saleInfo = currentBook.optJSONObject("saleInfo");
                     if (saleInfo.optString("saleability").contentEquals("FOR_SALE")) {
                         price = saleInfo.optJSONObject("retailPrice").optString("amount");
-                        //  Log.e(LOG_TAG, " price " + price );
                         currencyCode = saleInfo.optJSONObject("retailPrice").optString("currencyCode");
-                        // Log.e(LOG_TAG, " currencyCode " + currencyCode );
                     }
-
-                    //Book curBookObj = new Book(title, authors, description, categories, publisher, publishedDate, rating, smallThumbnail, thumbnail, infoLink, price, currencyCode);
+                    //Create new book Object
                     Book curBookObj = new Book(bookId, title, authors, description, categories, publisher, publishedDate, rating, price, currencyCode, smallThumbnail, thumbnail, infoLink);
-
+                    //Add book object to arrayList
                     booksList.add(curBookObj);
                 }
-
             } else {
                 Log.d(LOG_TAG, "extractBooksFromJson: no results.");
                 return null;
@@ -264,51 +237,52 @@ public class QueryUtils {
         }
         //Extract relevant fields from the JSON response and create a list of books
         List<Book> bookList = extractBooksFromJson(jsonResponse);
-
         return bookList;
-
     }
-    //Todo: 1.parse urls method -- done!
-    //TODO: 2.makeHttpConnection method -- done!
-    //Todo 2.1 ReadFromStream method -- done!
-    //Todo: 3.Parse json add data to Book object and fill ArrayList -- done!
 
-
-    public static Bitmap DownloadImageTask(String url) {
-        String urldisplay = url;
-        Bitmap mCover = null;
-        try {
-            InputStream in = new java.net.URL(urldisplay).openStream();
-            mCover = BitmapFactory.decodeStream(in);
-        } catch (Exception e) {
-            Log.e("Error", e.getMessage());
-            e.printStackTrace();
+    /*
+        public static Bitmap DownloadImageTask(String url) {
+            String urldisplay = url;
+            Bitmap mCover = null;
+            try {
+                InputStream in = new java.net.URL(urldisplay).openStream();
+                mCover = BitmapFactory.decodeStream(in);
+            } catch (Exception e) {
+                Log.e("Error", e.getMessage());
+                e.printStackTrace();
+            }
+            return mCover;
         }
-        return mCover;
-    }
-
+    */
     public static class DownloadThumbnailTask extends AsyncTask<String, Void, Bitmap> {
         ImageView imageView;
+        Book cuBook;
 
-        public DownloadThumbnailTask(ImageView imageView) {
-           this.imageView = imageView;
-       }
+
+        public DownloadThumbnailTask(ArrayList<Book> booksList, ImageView imageView, int i) {
+            this.cuBook = booksList.get(i);
+            this.imageView = imageView;
+        }
 
        @Override
        protected Bitmap doInBackground(String... url) {
-           String urldisplay = url[0];
-           Bitmap mCover = null;
-           InputStream in = null;
-           try {
-               in = new java.net.URL(urldisplay).openStream();
-               mCover = BitmapFactory.decodeStream(in);
-               in.close();
-           } catch (Exception e) {
-               Log.e("Error", e.getMessage());
-               e.printStackTrace();
+           if (cuBook.getThumbBitmap() == null) {
+               String urldisplay = url[0];
+               Bitmap mCover = null;
+               InputStream in;
+               try {
+                   in = new java.net.URL(urldisplay).openStream();
+                   mCover = BitmapFactory.decodeStream(in);
+                   if (in != null) {
+                       in.close();
+                   }
+               } catch (Exception e) {
+                   Log.e("Error", e.getMessage());
+                   e.printStackTrace();
+               }
+               cuBook.setThumbBitmap(mCover);
            }
-           Log.e(LOG_TAG, "DownloadThumbnailTask start ");
-           return mCover;
+           return cuBook.getThumbBitmap();
        }
 
        @Override
@@ -318,19 +292,13 @@ public class QueryUtils {
 
        @Override
        protected void onPostExecute(Bitmap bitmap) {
-           Log.e(LOG_TAG, "DownloadThumbnailTask Finish ");
-           imageView.setImageBitmap(bitmap);
-
+           if (cuBook.equals(imageView.getTag())) {
+               imageView.setImageBitmap(bitmap);
+           }
        }
     }
 
-    public class getBookDetails extends AsyncTask<String, Void, Book> {
 
-        @Override
-        protected Book doInBackground(String... strings) {
-            return null;
-        }
-    }
 
 
 
